@@ -1,0 +1,2 @@
+# UFZ
+Este relatório apresenta as etapas de desenvolvimentos para criação de um jogo de RPG, onde o mestre é substituído pelo código apresentado. O objetivo do jogo é fazer um tour pelo mundo fantasioso dos jogos de RPG, explorar as funções de jogabilidade (Fala de personagens, combates, penalidades e experiencia), aplicando-se um humor crítico de um possível apocalipse zumbi no Campus Samambaia (spoiler). O jogo é dividido em sessões, ao final de cada sessão é salvo um arquivo com os atributos do personagem para dar continuidade a trama nas próximas atualizações do jogo.
