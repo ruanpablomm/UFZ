@@ -1,0 +1,991 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <locale.h>
+#include <time.h>
+
+char classes[3][20] = {"Engenheiros", "Médicos", "Advogados"};
+char nome[30], opcoes[4][100];
+
+#define FORCA 0
+#define ARMADURA 1
+#define DESTREZA 2
+#define SANIDADE 3
+#define HP 4
+#define XP 5
+
+int habilidades[5], sexo, classe;
+int oponenteHP, oponenteForca;
+int escolha, resultDados;
+int level, qtLevels = 2;
+
+int main(){
+    int opcao;
+
+    setlocale(LC_ALL, "Portuguese");
+    srand(time(NULL));
+
+    do{
+        opcao = menu();
+        system("cls");
+        switch(opcao){
+            case 1:
+                if(venceuJogo()){
+                    printf("\n\nPARABÉNS VOCÊ SOBREVIVEU POR MAIS UM DIA!!!\n\n");
+                }else{
+                    printf("\n\nGAME OVER\n\n");
+                }
+                mostraHabilidades();
+                system("pause");
+                break;
+            case 2:
+                printf("\nDesenvolvido por:");
+                printf("\n\tANA PAULA MOURA SARAN");
+                printf("\n\tPAULO HENRIQUE DA CUNHA ARAÚJO");
+                printf("\n\tRICARDO DE MORAIS RAINHA");
+                printf("\n\tRUAN PABLO DE MIRANDA MINÁ");
+                printf("\n\n");
+                system("pause");
+
+                break;
+        }
+    }while(opcao != 3);
+
+    printf("\n*************************************************************");
+    printf("\n************************ FIM DE JOGO ************************");
+    printf("\n*************************************************************");
+    printf("\n\n");
+
+    system("pause");
+
+}
+
+int arquivoExiste(char dirArquivo[10]){
+
+    FILE *arquivo;
+
+    int existe;
+
+    arquivo = fopen(dirArquivo, "r");
+    existe = (arquivo != NULL);
+    fclose(arquivo);
+    return existe;
+}
+
+int menu(){
+    int opcao;
+
+    system("cls");
+    printf("*************************************************************");
+    printf("\n*************************************************************");
+    printf("\n              ***  ***   ********   ********                 ");
+    printf("\n              ***  ***   ********   ********                 ");
+    printf("\n              ***  ***   ***            ***                  ");
+    printf("\n              ***  ***   ********      ***                   ");
+    printf("\n              ***  ***   ********     ***                    ");
+    printf("\n              ***  ***   ***         ***                     ");
+    printf("\n              ********   ***        ********                 ");
+    printf("\n              ********   ***        ********                 ");
+    printf("\n");
+    printf("\n             UNIVERSIDADE FEDERAL DOS ZUMBIS                 ");
+    printf("\n*************************************************************");
+
+    if(arquivoExiste("progresso.txt")){
+        printf("\n                  [1]Continuar jogo");
+    }else{
+        printf("\n                  [1]Iniciar novo jogo");
+    }
+
+    printf("\n                  [2]Sobre o jogo");
+    printf("\n                  [3]Sair");
+    printf("\n*************************************************************");
+    printf("\n                                                             ");
+
+    do{
+        printf("\nEscolha a opção desejada:");
+        scanf("%d", &opcao);
+        if(opcao < 1 || opcao > 3){
+            printf("\nNão entendi o que significa ""RU RU RU RU RU"". Digite uma das opções.");
+        }
+    }while(opcao < 1 || opcao > 3);
+
+    return opcao;
+}
+
+int jogaDados(){
+    int result;
+
+    printf("\nSua sorte será definida nos dados\n");
+    system("pause");
+    result = rand() % 11;
+    printf("Sua sorte foi: %d\n", result);
+
+    return result;
+}
+
+int escolheOpcao(char opcoes[][100], int qtOpcoes){
+    int i, opcao;
+
+    do{
+        for(i = 0; i < qtOpcoes; i++){
+            printf("\n[%d] %s", i + 1, opcoes[i]);
+        }
+
+        printf("\n\nEscolha a opção desejada:");
+        scanf("%d", &opcao);
+
+        if(opcao < 1 || opcao > qtOpcoes){
+            printf("Não entendi o que significa ""RURURURU"". Digite uma das opções\n");
+        }
+    }while(opcao < 1 || opcao > qtOpcoes);
+
+    return opcao - 1;
+}
+
+int atualizaHabilidade(int tpHabilidade, int valor){
+    char msg[30];
+    int aux;
+
+    habilidades[tpHabilidade] = habilidades[tpHabilidade] + valor;
+    if(habilidades[tpHabilidade] < 0) habilidades[tpHabilidade] = 0;
+
+    switch(tpHabilidade){
+        case FORCA:
+            strcpy(msg, "Sua Força");
+            break;
+        case ARMADURA:
+            strcpy(msg, "Sua Armadura");
+            break;
+        case DESTREZA:
+            strcpy(msg, "Sua Destreza");
+            break;
+        case SANIDADE:
+            strcpy(msg, "Sua Sanidade");
+            break;
+        case HP:
+            strcpy(msg, "Sua Saúde");
+            break;
+        case XP:
+            strcpy(msg, "Sua Experiência");
+            break;
+    }
+
+    if(valor < 0){
+        printf("\n%s foi reduzida para: %d\n", msg, habilidades[tpHabilidade]);
+    }
+    if(valor==0){
+        printf("\n%s manteve-se em: %d\n", msg, habilidades[tpHabilidade]);
+    }
+    if(valor>0){
+        printf("\n%s foi aumentada para: %d\n", msg, habilidades[tpHabilidade]);
+    }
+    if(habilidades[HP] <= 0){
+        printf("\nSua Saúde esgotou!!! Você morreu\n.");
+        return 1;
+    }
+
+    return 0;
+}
+
+void pausaJogo(){
+    printf("\n");
+    system("pause");
+    system("cls");
+}
+
+void selecionaPersonagem(){
+
+    printf("Qual o seu nome aventureiro(a)?\n");
+    fflush(stdin);
+    gets(nome);
+    printf("Escolha o sexo de %s", nome);
+    strcpy(opcoes[0],"Masculino");
+    strcpy(opcoes[1],"Feminino");
+    sexo = escolheOpcao(opcoes, 2);
+
+    do{
+        system("cls");
+
+        strcpy(opcoes[0], "Engenheiro");
+        strcpy(opcoes[1], "Medico");
+        strcpy(opcoes[2], "Advogado");
+
+        printf("Escolha a sua profissão:");
+        classe = escolheOpcao(opcoes, 3);
+
+        switch(classe){
+            case 0:
+                printf("\nVoce selecionou a ordem dos Engenheiros, fortes, astutos, calculistas,resistentes e agressivos.");
+                printf("\nHabilidosos com armas, capazes de criar divesas ferramentas em seus acertos criticos.");
+                printf("\nDevido ao excesso de conhecimento e estudo tem sua sanidade reduzida, e pode ter falhas criticas desastrosas em habilidades sociais.");
+                habilidades[FORCA] = 3;
+                habilidades[ARMADURA] = 5;
+                habilidades[DESTREZA] = 3;
+                habilidades[SANIDADE] = 3;
+                habilidades[HP] = 8;
+                break;
+
+            case 1:
+                printf("\nVoce selecionou a ordem dos Médicos,");
+                printf("\nHabilidosos com curas e poções, capazes de criar divesos venenos e alucinógenos.");
+                printf("\nDevido ao excesso de ego tem dificuldades em relacionar com trabalhadores comuns.");
+                printf("\nessa classe é impossibilitada de usar armaduras(requer uso de jalecos),porém possuem uma saúde impecável");
+                habilidades[FORCA] = 2;
+                habilidades[ARMADURA] = 1;
+                habilidades[DESTREZA] = 3;
+                habilidades[SANIDADE] = 4;
+                habilidades[HP] = 10;
+                break;
+
+            case 2:
+                printf("\nVoce selecionou a ordem dos Advogados:");
+                printf("\nAo selecionar a classe dos advogados, voce é chamado de Doutor(mesmo sem ter doutorado).");
+                printf("\nDominam a lingua portuguesa, capazes de criar dialetos que somente outro advogado é capaz de entender.");
+                printf("\nDevido ao excesso de palavras dificeis eles tem facilidade de convencer as pessoas de ideias absurdas em seus acertos criticos.");
+                printf("\nessa classe é impossibilitada de usar armaduras(requer uso de ternos impecáveis)");
+                printf("\nPossuem muita velocidade para fugir de uma situação, seja com as palavras ou com as pernas.");
+                if(sexo==0){
+                    strcpy(nome,"Doutor");
+                }else{
+                    strcpy(nome,"Doutora");
+                }
+
+                habilidades[FORCA] = 2;
+                habilidades[ARMADURA] = 1;
+                habilidades[DESTREZA] = 3;
+                habilidades[SANIDADE] = 6;
+                habilidades[HP] = 8;
+                break;
+        }
+        printf("%s,\n", nome);
+        printf("\n\nOs atributos da ordem dos %s são:", classes[classe]);
+        printf("\n\tForca: %d\n\tArmadura: %d\n\tDestreza: %d\n\tSanidade: %d\n\tHP: %d",habilidades[FORCA],habilidades[ARMADURA],habilidades[DESTREZA],habilidades[SANIDADE],habilidades[HP]);
+        printf("\n\nDeseja permanecer nessa profissão?");
+
+        strcpy(opcoes[0], "Sim");
+        strcpy(opcoes[1], "Não");
+        escolha = escolheOpcao(opcoes, 2);
+
+    }while(escolha == 2);
+}
+
+void mostraHabilidades(){
+    printf("\n\n-------------Saldo de habilidades-------------");
+    printf("\nFORCA:   \t%d", habilidades[FORCA]);
+    printf("\nARMADURA:\t%d", habilidades[ARMADURA]);
+    printf("\nDESTREZA:\t%d", habilidades[DESTREZA]);
+    printf("\nSANIDADE:\t%d", habilidades[SANIDADE]);
+    printf("\nHP:      \t%d", habilidades[HP]);
+    printf("\nXP:      \t%d", habilidades[XP]);
+    printf("\n----------------------------------------------\n\n");
+
+}
+
+int carregaProgresso(){
+    FILE *arquivo;
+    char linhaArq[20], secao[10];
+    int i, hab, valor;
+
+    arquivo = fopen("progresso.txt", "r");
+    if(arquivo == NULL) return 0;
+
+    fgets(nome, 30, arquivo);
+    printf("\nNome: %s", nome);
+
+    fscanf(arquivo, "%s %d\n", &secao, &level);
+    printf("Level: %d", level);
+
+    //Zerando habilidades
+    for(i = 0; i < 6; i++){
+        habilidades[i] = 0;
+    }
+
+    //Buscando habilidades do arquivo
+    while(fscanf(arquivo, "%d: %d\n", &hab, &valor) != EOF){
+        habilidades[hab] = valor;
+    }
+
+    fclose(arquivo);
+    return 1;
+}
+
+int level1(){
+
+    int aux;
+
+    selecionaPersonagem();
+
+    //return 1; //Descomente essa linha para testar o salvamento de progresso
+
+    system("cls");
+    printf("****************LEVEL 1****************");
+
+    printf("\nHAHAHAHAHAHAHA!");
+    printf("\nBoa sorte %s <3\n",nome);
+    system("pause");
+    system("cls");
+    printf("\n\n%s está um tanto quanto sonolento, parece que está em uma ressaca sem fim... A noite foi longa, não foi?\nPois é isso se chama amnésia alcólica.\nLembre-se que estava naquela festa, mas agora..",nome);
+    printf("Ei, espere,certo?. . . \nOnde você estáva no seu último minuto de consciência?");
+
+    strcpy(opcoes[0], "No campus Samambaia");
+    strcpy(opcoes[1], "No ônibus");
+    strcpy(opcoes[2], "No INTER vcsabeoque");
+    strcpy(opcoes[3], "No Bar da Tia");
+
+    escolha = escolheOpcao(opcoes, 4);
+    switch(escolha){
+        case 0:
+            printf("Então quer dizer que %s foi parar no Samambaia? \nVocê ao menos selembra de como chegou aí?",nome);
+            strcpy(opcoes[0], "Eu tenho uma vaga impressão de que eu peguei um ônibus... Ou será que vim de Uber?");
+            strcpy(opcoes[1], "Vim de van com amigos. Cantamos durante todo o percurso. Agora tenho que voltar pra casa");
+
+            escolha = escolheOpcao(opcoes, 2);
+
+            if (escolha == 0){
+                printf("%s se separou de seus amigos, chapou demais, nem sabe onde está direito.",nome);
+                if(atualizaHabilidade(SANIDADE, -1)) return 0;
+            }else{
+                printf("%s se lembra de tudo, tem grande resistencia ao alcool.",nome);
+                if(atualizaHabilidade(SANIDADE, 2)) return 0;
+            }
+            break;
+        case 1:
+            printf("\n%s estava no onibus e foi assaltado, o ladrão te deu dois socos enquanto dormia.",nome);
+            if(atualizaHabilidade(HP, -2)) return 0;
+            break;
+
+        case 2:
+            printf("\n- está tudo girando, grrrrr!!! . . . ");
+            printf("\n%s estava no INTER#vcsabeoque, você bebeu tanto que vomitou e teve amnésia alcólica.",nome);
+            printf("\nDepois de vomitar todo alcool sua sanidade voltou ao normal.");
+            if(atualizaHabilidade(HP, -2)) return 0;
+            break;
+        case 3:
+            printf("\nA ultima coisa que %s se lembra é de aceitar bebida de estranhos,\nacho que tinha algo errado com aquela latinha de cerveja. . . ",nome);
+            printf("\n%s desceu no ponto do samambaia meio alucinado. . . ",nome);
+            if(atualizaHabilidade(HP, -2)) return 0;
+            if(atualizaHabilidade(SANIDADE, -1)) return 0;
+            break;
+    }
+
+    pausaJogo();
+    printf("\n%s esta caminhando entre as arvores,esta tudo escuro, de repente bate em uma estrutura de concreto...",nome);
+    printf("\nliga a lanterna do celular e lê escrito 'INSTITUTO DE QUIMICA'");
+    printf("\nSim, %s está no Samambaia, são 02h da madrugada, o campus inteiro está sem energia elétrica",nome);
+    printf("\nBOOOOMMMMM!!!!\nQUE BARULHO FOI ESSE?!\n -Socooorro!");
+    printf("\nO LABORATÓRIO EXPLODIU! O que %s faz?",nome);
+
+    strcpy(opcoes[0], "Investiga os motivos da explosão...");
+    strcpy(opcoes[1], "Se esconde e observa...");
+    escolha = escolheOpcao(opcoes, 2);
+    resultDados = jogaDados();
+
+    switch(escolha){
+        case 0:
+            if(resultDados <= 2){
+                printf("\n%s tentou investigar o local e acabou se queimando e espalhando o incêndio.É melhor correr!",nome);
+                if(atualizaHabilidade(HP, -3)) return 0;
+            }else{
+                if(resultDados < 6){
+                    printf("\nO incêndio aumentou impedindo a passagam de %s, mas pelo menos não se feriu.",nome);
+                }else{
+                    printf("\n%s encontrou um extintor para apagar o fogo e notou um macaco fugindo pela janela\n",nome);
+                    if(atualizaHabilidade(XP,10));
+                    printf("\n\n%s vê algumas pessoas fugindo do prédio. É melhor correr!", nome);
+                }
+            }
+            break;
+        case 1:
+            if(resultDados <= 2){
+                printf("\n%s correu para se esconder, mas no escuro acabou tropeçando e torcendo o pé.",nome);
+                if(atualizaHabilidade(HP, -2)) return 0;
+            }else{
+                if(resultDados < 6){
+                    printf("\n%s não encontra nenhum local para se esconder. É melhor ficar esperto.\n",nome);
+                }else{
+                    printf("\n%s conseguiu se esconder atrás de uma árvore.De longe observa pessoas saindo correndo de dentro do instituto de Química.",nome);
+                    if(atualizaHabilidade(XP,10));
+                }
+            }
+            break;
+    }
+
+    pausaJogo();
+    printf("\nTem um pessoal estranho saindo do prédio. Eles estão um pouco... Podres!!");
+    printf("\nTem alguém da Liga das Engenharias no ponto.\n%s Sempre quis fazer parte da Liga...\n",nome);
+    printf("\nEspera... SÃO ZUMBIS! TEM ZUMBIS NO SAMAMBAIA!\nE você pensando em entrar pra Liga?!");
+    printf("\nDe repente um macaco verde gosmento enlouquecido ataca a pessoa que estava no ponto de onibus");
+    printf("\nO que voce vai fazer?!");
+
+    strcpy(opcoes[0], "Vou me esconder no RU *corre*");
+    strcpy(opcoes[1], "Atacar o macaco verde");
+    strcpy(opcoes[2], "Vou correr para dentro da mata");
+    escolha=escolheOpcao(opcoes,3);
+
+    switch(escolha){
+        case 0:
+            resultDados= jogaDados();
+            if(resultDados <= 2){
+                printf("\n%s tentou se esconder no RU, mas tropeçou em uma lata de lixo.",nome);
+                if(atualizaHabilidade(HP, -2)) return 0;
+                printf("\nSua queda gerou um barulho que chamou a atenção do macaco.");
+
+            } else{
+                if(resultDados < 6){
+                    printf("\n%s tentou se esconder porém nao achou nenhum local seguro", nome);
+                }else{
+                    printf("\n%s conseguiu se esconder. Não parece um lugar muito seguro, mas pelo menos consegue recuperar um pouco o fôlego.", nome);
+                    atualizaHabilidade(HP, 2);
+                }
+
+                printf("\nMas %s ouve um barulho nas árvores, parece ser outro macaco verde...", nome);
+            }
+
+            break;
+        case 2:
+            resultDados= jogaDados();
+            if(resultDados <= 2){
+                printf("\n%s tentou correr para dentro da mata, tropeçou numa raiz e torceu o pé.",nome);
+                if(atualizaHabilidade(HP, -3)) return 0;
+            }else{
+                if(resultDados < 6){
+                    printf("\n%s tentou correr pra dentro da mata, mas a mata estava muito densa e não conseguiu ir muito longe\n",nome);
+                }else{
+                    printf("\n%s conseguiu correr para dentro da mata com tranquilidade e observa a movimentação dos zumbis ao longe\n",nome);
+                    atualizaHabilidade(XP, 5);
+                    printf("\nMas %s ouve um barulho nas árvores, parece ser outro macaco verde...", nome);
+                }
+            }
+
+            break;
+    }
+
+    printf("\nO macaco verde te viu e corre em sua direção!!! Prepare-se");
+    pausaJogo();
+
+    printf("Voce entrou no modo combate!\n\n");
+    oponenteForca = 3;
+    oponenteHP = 8;
+
+    do{
+        printf("\nO macaco enfurecido salta na direção de %s. O que ele vai fazer?", nome);
+
+        strcpy(opcoes[0], "Atacar");
+        strcpy(opcoes[1], "Defender");
+        escolha = escolheOpcao(opcoes, 2);
+        resultDados = jogaDados();
+
+        if(escolha == 0){
+            if(resultDados <= 2){
+                printf("\n%s tentou ataca-lo e acabou acertando uma joelhada na propria cara! Devia ter terminado aquelas aulas de kung-fu...",nome);
+                if(atualizaHabilidade(HP, -4)) return 0;
+            }else{
+                if(resultDados < 6){
+                    printf("\n%s Tentou acertar o macaco mas ele se esquivou.",nome);
+                }else{
+                    printf("\n%s acertou o golpe com toda sua força e destreza\n",nome);
+                    oponenteHP -= FORCA + DESTREZA;
+                    printf("\nO HP do macaco foi reduzido para: %d", oponenteHP);
+                }
+            }
+        }else{
+            if(resultDados <= 2){
+                printf("\n%s tentou se proteger, mas o macaco lhe deu uma mordida no braço",nome);
+                if(habilidades[ARMADURA] < oponenteForca){
+                    aux = oponenteForca - habilidades[ARMADURA];
+
+                    if(atualizaHabilidade(ARMADURA, oponenteForca)) return 0;
+                    if(atualizaHabilidade(HP, aux)) return 0;
+                }else{
+                    if(atualizaHabilidade(ARMADURA, oponenteForca)) return 0;
+                }
+            }else{
+                if(resultDados < 6){
+                    printf("\n%s conseguiu se esquivar do macaco.",nome);
+                }else{
+                    printf("\n%s conseguiu se esquivar do macaco e ele acabou dando de cara em uma árvore",nome);
+                    oponenteHP -= DESTREZA;
+                    printf("\nO HP do macaco foi reduzido para: %d", oponenteHP);
+                }
+            }
+        }
+
+        pausaJogo();
+    }while(oponenteHP > 0);
+
+    printf("\n%s conseguiu derrotar o macaco", nome);
+    pausaJogo();
+
+    printf("\nA luta consumiu muita energia de %s, ele precisa se recuperar.");
+    printf("\n%s observa os arredores. O que ele faz?");
+
+    strcpy(opcoes[0], "Vai para o DCE ver se ainda tem salgado");
+    strcpy(opcoes[1], "Procura ajuda");
+
+    escolha = escolheOpcao(opcoes, 2);
+    resultDados = jogaDados();
+
+    switch(escolha){
+        case 0:
+
+            if(resultDados <= 2){
+                printf("O DCE está fechado, %s tenta quebrar uma janela mas se corta com os estilhaços.", nome);
+                if(atualizaHabilidade(HP, -5)) return 0;
+            }else{
+                if(resultDados < 6){
+                    printf("O DCE está fechado, e tomado por zumbis. Ficou sem salgado dessa vez");
+                }else {
+                    printf("%s consegue entrar no DCE, e veja só... ainda tem salgados", nome);
+                    atualizaHabilidade(HP, 5);
+                    printf("\n%s aproveita e pega um taco de sinuca. Isso pode ser útil!", nome);
+                    atualizaHabilidade(FORCA, 2);
+                }
+            }
+
+            break;
+
+        case 1:
+            if(resultDados <= 2){
+                printf("\%s vê alguém escondido de trás de uma caçamba de lixo. Mas ao chegar perto...", nome);
+                printf("\nPercebe que é um zumbi!!!");
+                printf("\nEle agarra e devora uma das pernas de %s", nome);
+                if(atualizaHabilidade(HP, -100)) return 0;
+            }else{
+                if(resultDados < 6){
+                    printf("\n%s não encontra ninguém. Acho que ele está sozinho nessa.", nome);
+                }else {
+                    printf("\n%s não encontra ninguém. Mas acha uma barra de ferro no caminho.", nome);
+                    printf("\nIsto pode lhe ajudar a se defender.");
+                    atualizaHabilidade(FORCA, 4);
+                }
+            }
+
+            break;
+    }
+
+    printf("\n\nO QUE SERÁ QUE VEM A SEGUIR....");
+    return 1;
+
+}
+
+int level2(){
+    int flag, aux;
+    printf("****************LEVEL 2****************");
+    printf("\n\nPara onde ir agora?");
+    strcpy(opcoes[0], "Sair do Samambaia...");
+    strcpy(opcoes[1], "Ligar para a polícia...");
+    strcpy(opcoes[2], "Ligar para os amigos...");
+    escolha = escolheOpcao(opcoes, 3);
+    resultDados = jogaDados();
+    pausaJogo();
+
+    switch(escolha){
+        case 0:
+            printf("\n%s caminha pela rua.", nome);
+            printf("\nA rua até a saída do Samambaia parece vazia.");
+            printf("\nQue barulho é esse? Parece o barulho de uma moto...");
+            printf("\nAquilo é um zumbi em uma moto?");
+            printf("\nNÃO!!!\nÉ UM ASSALTANTE!");
+            if(resultDados <= 2){
+                printf("\n O assaltante leva todo o seu dinheiro e atira em você!!!");
+                if(atualizaHabilidade(HP, -4)) return;
+                if(HP > 0){
+                    flag = 0;
+                }
+            }
+            if((resultDados < 6) && (resultDados > 2)){
+                printf("\nSorte sua que universitários não tem dinheiro");
+                printf("\nO assaltante te revista e encontra nada, ele vai embora");
+                printf("Ele deve ser cego para não ter visto esse seu celular...");
+                printf("\n%s continua o seu percurso.", nome);
+                printf("\nAlegria de pobre realmente dura pouco...");
+                flag = 0;
+            }
+            if(resultDados >= 6){
+                printf("\nO assaltante aponta a arma para %s.", nome);
+                printf("\nCom toda sua destreza %s consegue pegar a arma do assaltatante e atira nele.", nome);
+                if(atualizaHabilidade(DESTREZA, 4)) return;
+                if(atualizaHabilidade(XP, 10)) return;
+                printf("\nUma horda de zumbis atraido pelo barulho aparecem");
+                printf("\n%s consegue correr, mas o assaltante não...", nome);
+                flag = 1;
+            }
+            break;
+        case 1:
+            printf("\n%s pega seu celular e...", nome);
+            printf("\n. . .\n");
+            if(resultDados <= 2){
+                printf("\nA policia antende. . .");
+                printf("\n%s conta que tem zumbi no samambaia", nome);
+                printf("\nA policia acha que %s está louco e desliga o telefone" , nome);
+                printf("\nAfinal...Onde já se viu zumbis na vida real?");
+                printf("Você deve estar realmente louco");
+                if(atualizaHabilidade(SANIDADE, -3)) return;
+                if(SANIDADE > 0){
+                    flag = 0;
+                }
+            }
+            if((resultDados < 2)&&(resultDados > 6)){
+                printf("\nQue pena sua batéria descarregou!");
+                printf("\n%s avista um telefone público e vai até ele.", nome);
+                printf("\nParece que é seu dia de azar, o telefone não funciona.");
+                flag = 0;
+            }
+            if(resultDados >= 6){
+                printf("\nA policia atende. . .");
+                printf("\n%s acha melhor não falar sobre os zumbis", nome);
+                printf("\nVocê avisa a policia sobre a explosão no laborátorio");
+                printf("\nA policia manda viaturas");
+                system("pause");
+                system("cls");
+                printf("A policia chega e vai até o laboratorio");
+                if(atualizaHabilidade(SANIDADE, 3)) return;
+                if(atualizaHabilidade(DESTREZA, 4)) return;
+                if(atualizaHabilidade(XP, 10)) return;
+                flag = 2;
+                printf("%s fica sozinho por um instante. . .", nome);
+            }
+            break;
+        case 2:
+                printf("%\ns teve uma ideia genial!!!", nome);
+                printf("Chamar os amigos para o Samambaia e juntos sairem matando zumbis ao estilo The Walking Dead!!!");
+                printf("\n. . .\n");
+                if(resultDados <= 2){
+                    printf("\nAo atenderem %s conta sobre a sua ideia genial", nome);
+                    printf("\nOs amigos acham que %s está alucinado", nome);
+                    printf("\nEles desligam");
+                    printf("\n%s se sente desmotivado e louco");
+                    if(atualizaHabilidade(DESTREZA, -3)) return;
+                    if(atualizaHabilidade(SANIDADE, -2)) return;
+                    if((DESTREZA > 0)&&(SANIDADE > 0)){
+                        flag = 0;
+                    }
+                }
+                if((resultDados < 6) && (resultDados > 2)){
+                    printf("Nenhum deles atendem");
+                    printf("Devem estar todos chapados...");
+                    flag = 0;
+                }
+                if(resultDados >= 6){
+                    printf("\nSeus amigos ao ouvirem sua história não pensam duas vezes e vão para o samambaia");
+                    printf("\nAfinal seus amigos devem ser loucos...");
+                    if(atualizaHabilidade(DESTREZA, 4)) return;
+                    if(atualizaHabilidade(SANIDADE, -1)) return;
+                    if(atualizaHabilidade(XP, 10)) return;
+                    flag=3;
+                }
+            break;
+    }
+
+    if(flag==0){
+        printf("UM ZUMBI TE VIU!!!");
+        pausaJogo();
+        printf("\n\nVoce entrou no modo combate!\n\n");
+        oponenteForca = 3;
+        oponenteHP = 8;
+
+    do{
+        printf("\nO zumbi vai na direção de %s. O que %s vai fazer?", nome, nome);
+
+        strcpy(opcoes[0], "Atacar");
+        strcpy(opcoes[1], "Defender");
+        escolha = escolheOpcao(opcoes, 2);
+        resultDados = jogaDados();
+
+        if(escolha == 0){
+            if(resultDados <= 2){
+                printf("\n%s tentou ataca-lo e escorregou como um idiota!",nome);
+                if(atualizaHabilidade(HP, -3)) return 0;
+            }else{
+                if(resultDados < 6){
+                    printf("\n%s atacou e errou miseravelmente. \n",nome);
+                }else{
+                    printf("\n%s acertou o golpe com toda sua força e destreza\n",nome);
+                    oponenteHP -= FORCA + DESTREZA;
+                    printf("\nO HP DO ZUMBI FOI REDUZIDOS PARA ... %d",oponenteHP);
+                }
+            }
+        }else{
+            if(resultDados <= 2){
+                printf("\n%s tentou se proteger, mas o zumbi lhe deu uma mordida no braço",nome);
+                if(habilidades[ARMADURA] < oponenteForca){
+                    aux = oponenteForca - habilidades[ARMADURA];
+
+                    if(atualizaHabilidade(ARMADURA, oponenteForca)) return 0;
+                    if(atualizaHabilidade(HP, aux)) return 0;
+                }else{
+                    if(atualizaHabilidade(ARMADURA, oponenteForca)) return 0;
+                }
+            }else{
+                if(resultDados < 6){
+                    printf("\n%s conseguiu se esquivar do zumbi.",nome);
+                }else{
+                    printf("\n%s conseguiu se esquivar do zumbi e ele acabou mordendo uma árvore",nome);
+                    oponenteHP -= DESTREZA;
+                    printf("\nO HP do zumbi foi reduzido para: %d", oponenteHP);
+                }
+            }
+        }
+
+        pausaJogo();
+    }while(oponenteHP > 0);
+
+    }
+    if(flag==1){
+        pausaJogo();
+        printf("\nEi aquilo é um cachoro!?");
+        printf("\n%s decidi faze-lo seu companheiro de aventura", nome);
+        printf("\nEspera...Parece que ele não quer ser seu companheiro");
+        printf("\nESSÃ NÃO!!! O cachorro também é um zumbi");
+        pausaJogo();
+        printf("\n\nVoce entrou no modo combate!\n\n");
+        oponenteForca = 4;
+        oponenteHP=9;
+        do{
+            printf("O cachorro ataca %s ferozmente!!! O que %s vai fazer?", nome, nome);
+
+            strcpy(opcoes[0], "Atacar");
+            strcpy(opcoes[1], "Defender");
+            escolha = escolheOpcao(opcoes, 2);
+            resultDados = jogaDados();
+        if(escolha==0){
+            if(resultDados <= 2){
+                printf("\n%s atira e acerta o propio pé!",nome);
+                if(atualizaHabilidade(HP, -3)) return;
+            }else{
+                if(resultDados < 6){
+                    printf("\n%s atira e erra miseravelmente. \n",nome);
+                }else{
+                    printf("\n%s acerta um belo tiro\n",nome);
+                    oponenteHP -= FORCA + DESTREZA;
+                    printf("\nO HP DO CACHORRO FOI REDUZIDOS PARA ... %d",oponenteHP);
+                }
+            }
+        }else{
+                if(resultDados <= 2){
+                    printf("\n%s tentou se proteger, mas o cachorro lhe deu uma mordida na perna",nome);
+                    if(habilidades[ARMADURA] < oponenteForca){
+                        aux = oponenteForca - habilidades[ARMADURA];
+
+                        if(atualizaHabilidade(ARMADURA, oponenteForca)) return 0;
+                        if(atualizaHabilidade(HP, aux)) return 0;
+                    }else{
+                        if(atualizaHabilidade(ARMADURA, oponenteForca)) return 0;
+                    }
+                }else{
+                    if(resultDados < 6){
+                        printf("\n%s conseguiu se esquivar do cachorro.",nome);
+                    }else{
+                        printf("\n%s conseguiu se esquivar do cachorro e ele acabou mordendo uma árvore",nome);
+                        oponenteHP -= DESTREZA;
+                        printf("\nO HP do zumbi foi reduzido para: %d", oponenteHP);
+                    }
+                }
+            }
+
+            pausaJogo();
+        }while(oponenteHP > 0);
+    }
+
+    if(flag==2){
+        pausaJogo();
+        printf("\n%s descansa perto da floresta", nome);
+        printf("\nQue barulho foi esse?");
+        printf("\nAquilo é. . .Aquilo é um drogado?");
+        printf("\nNÃO!!! É UM ZUMBI DROGADO!!!???");
+        printf("\n\nParece que ele é mais rápido que o normal!\n\n");
+        printf("\n\nVoce entrou no modo combate!\n\n");
+        do{
+            printf("\nO zumbi drogado vai na direção de %s em alta velocidade. O que %s vai fazer?",nome, nome);
+            strcpy(opcoes[0], "Atacar");
+            strcpy(opcoes[1], "Defender");
+            escolha = escolheOpcao(opcoes, 2);
+            resultDados = jogaDados();
+            if(escolha==0){
+                if(resultDados <= 2){
+                    printf("\n%s chuta uma árvore!",nome);
+                    if(atualizaHabilidade(HP, -3)) return 0;
+                }else{
+                    if((resultDados < 6)&&(resultDados>2)){
+                        printf("\n%s acerta o vento. \n",nome);
+                    }else{
+                        printf("\n%s acertou o golpe com toda sua força e destreza\n",nome);
+                        oponenteHP -= FORCA + DESTREZA;
+                        printf("\nO HP DO ZUMBI DROGADO FOI REDUZIDOS PARA ... %d",oponenteHP);
+                    }
+                }
+            }else{
+                if(resultDados <= 2){
+                    printf("\n%s tentou se proteger, mas o zumbi lhe deu uma mordida no braço",nome);
+                    if(habilidades[ARMADURA] < oponenteForca){
+                        aux = oponenteForca - habilidades[ARMADURA];
+
+                        if(atualizaHabilidade(ARMADURA, oponenteForca)) return 0;
+                        if(atualizaHabilidade(HP, aux)) return 0;
+                    }else{
+                        if(atualizaHabilidade(ARMADURA, oponenteForca)) return 0;
+                    }
+                }else{
+                    if(resultDados < 6){
+                        printf("\n%s conseguiu se esquivar do zumbi drogado.",nome);
+                    }else{
+                        printf("\n%s O zumbi drogado tentou ataca-lo, mas confundiu você com uma árvore e a mordeu!",nome);
+                        oponenteHP -= DESTREZA;
+                        printf("\nO HP do zumbi foi reduzido para: %d", oponenteHP);
+                    }
+                }
+            }
+
+            pausaJogo();
+        }while(oponenteHP > 0);
+    }
+
+    if(flag == 3){
+        system("pause");
+        system("cls");
+        if(classe==0){
+            printf("Seus amigos uma médica e um advogado chegam");
+            if(atualizaHabilidade(HP, 5));
+            if(atualizaHabilidade(SANIDADE, 5));
+        }
+        if(classe==1){
+            printf("Seus amigos um engenheiro e uma advogada chegam");
+            if(atualizaHabilidade(ARMADURA, 5));
+            if(atualizaHabilidade(SANIDADE, 5));
+        }
+        if(classe==2){
+            printf("Seus amigos um engenheiro e uma médica chegam");
+            if(atualizaHabilidade(ARMADURA, 5));
+            if(atualizaHabilidade(HP, 5));
+        }
+        printf("Vocês saiem pelo Samambaia matando zumbis");
+        printf("Aquilo é...UM ZUMBI GIGANTE!?");
+        printf("%s decidi atacar sozinho e os amigos concordam", nome);
+        pausaJogo();
+
+        printf("Voce entrou no modo combate!\n\n");
+        oponenteForca = 5;
+        oponenteHP = 15;
+
+        do{
+            printf("\nO zumbi gigante enfurecido salta na direção de %s. O que %s vai fazer?", nome, nome);
+
+            strcpy(opcoes[0], "Atacar");
+            strcpy(opcoes[1], "Defender");
+            escolha = escolheOpcao(opcoes, 2);
+            resultDados = jogaDados();
+
+            if(escolha == 0){
+                if(resultDados <= 2){
+                    printf("\n%s tentou ataca-lo e acabou acertando uma joelhada na propria cara! Aquelas aulas de kung-fu realmente está fazendo falta...",nome);
+                printf("\nOs amigos de %s riem dele", nome);
+                    if(atualizaHabilidade(HP, -4)) return 0;
+                }else{
+                    if(resultDados < 6){
+                        printf("\nNão é possível!!! %s errou um zumbi daquele tamanho. ",nome);
+                    }else{
+                        printf("\n%s acertou o golpe com toda sua força e destreza\n",nome);
+                        oponenteHP -= FORCA + DESTREZA;
+                        printf("\nO HP do zumbi gigante foi reduzido para: %d", oponenteHP);
+                    }
+                }
+            }else{
+                if(resultDados <= 2){
+                    printf("\n%s tentou se proteger, mas o zumbi gigante lhe deu uma mordida e quase arranca seu braço",nome);
+                    if(habilidades[ARMADURA] < oponenteForca){
+                        aux = oponenteForca - habilidades[ARMADURA];
+
+                        if(atualizaHabilidade(ARMADURA, oponenteForca)) return 0;
+                        if(atualizaHabilidade(HP, aux)) return 0;
+                    }else{
+                        if(atualizaHabilidade(ARMADURA, oponenteForca)) return 0;
+                    }
+                }else{
+                    if(resultDados < 6){
+                        printf("\n%s conseguiu se esquivar do zumbi gigante.",nome);
+                    }else{
+                        printf("\nO zumbi tentou morder %s mas conseguiu esquivar com sucesso!", nome);
+                        oponenteHP -= DESTREZA;
+                        printf("\nO HP do zumbi foi reduzido para: %d", oponenteHP);
+                    }
+                }
+            }
+
+            pausaJogo();
+        }while(oponenteHP > 0);
+    }
+
+    return 1;
+}
+
+int venceuJogo(){
+
+    int passouLevel, i, j;
+
+    level = 1;
+
+    if(arquivoExiste("progresso.txt")){
+        if(!carregaProgresso()){
+            printf("\nFalha ao carregar progresso.");
+            printf("\nO jogo irá carregar do início.");
+            pausaJogo();
+        }
+
+        mostraHabilidades();
+        pausaJogo();
+    }
+
+    for(i = level; i <= qtLevels; i++){
+        switch(i){
+            case 1:
+                passouLevel = level1();
+                break;
+            case 2:
+                passouLevel = level2();
+                break;
+        }
+
+        if(!passouLevel) return 0;
+
+        pausaJogo();
+        printf("\nParabéns! Você sobrevivel ao level %d.", level);
+        level += 1;
+
+        //Se tiver passado por todos os levels apaga o progresso
+        if(level > qtLevels){
+            remove("progresso.txt");
+        } else {
+            do{
+                printf("\nO que deseja fazer?");
+                strcpy(opcoes[0], "Continuar");
+                strcpy(opcoes[1], "Salvar progresso e sair");
+
+                escolha = escolheOpcao(opcoes, 2);
+
+                if(escolha == 1){
+                    FILE *arquivo;
+
+                    arquivo = fopen("progresso.txt", "w");
+                    if(arquivo != NULL){
+                        fprintf(arquivo, "%s", nome);
+                        fprintf(arquivo, "\nLEVEL: %d", level);
+                        for(j = 0; j < 6; j++){
+                            fprintf(arquivo, "\n%d: %d", j, habilidades[j]);
+                        }
+
+                        fclose(arquivo);
+                        printf("\nProgresso salvo com sucesso!!!");
+                        return 1;
+                    } else {
+                        printf("\nFalha ao salvar progresso do jogo.");
+                    }
+                }
+
+            }while(escolha != 0);
+        }
+    }
+
+    return 1;
+
+
+}
