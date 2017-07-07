@@ -40,10 +40,10 @@ int main(){
                 break;
             case 2:
                 printf("\nDesenvolvido por:");
-                printf("\n\tANA PAULA MOURA SARAN");
-                printf("\n\tPAULO HENRIQUE DA CUNHA ARAÚJO");
-                printf("\n\tRICARDO DE MORAIS RAINHA");
-                printf("\n\tRUAN PABLO DE MIRANDA MINÁ");
+                printf("\n\tANA PAULA MOURA SARAN - anapmsaran@gmail.com");
+                printf("\n\tPAULO HENRIQUE DA CUNHA ARAÚJO - donpaulet@hotmail.com");
+                printf("\n\tRICARDO DE MORAIS RAINHA - icraimut@hotmail.com");
+                printf("\n\tRUAN PABLO DE MIRANDA MINÁ - ruanpablomm@hotmail.com");
                 printf("\n\n");
                 system("pause");
 
